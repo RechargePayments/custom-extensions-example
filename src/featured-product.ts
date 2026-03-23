@@ -174,6 +174,7 @@ export default class FeaturedProduct extends LitElement {
   @state() private _data: FeaturedProductData | null = null;
   @state() private _adding = false;
   @state() private _added = false;
+  @state() private _alreadyInOrder = false;
 
   connectedCallback() {
     super.connectedCallback();
@@ -218,11 +219,18 @@ export default class FeaturedProduct extends LitElement {
   private async _fetchProduct() {
     try {
       const session = await sessionPromise;
-      const response = await productSearch(session, {
-        format_version: '2022-06',
-        external_product_ids: [SHOPIFY_PRODUCT_ID],
-        limit: 1,
-      });
+      const [response, { charges }] = await Promise.all([
+        productSearch(session, {
+          format_version: '2022-06',
+          external_product_ids: [SHOPIFY_PRODUCT_ID],
+          limit: 1,
+        }),
+        listCharges(session, {
+          status: ['queued'],
+          sort_by: 'scheduled_at-asc',
+          limit: 1,
+        }),
+      ]);
 
       const product = response.products[0];
       if (!product) return;
@@ -230,6 +238,13 @@ export default class FeaturedProduct extends LitElement {
       const variant = SHOPIFY_VARIANT_ID
         ? (product.variants.find(v => v.external_variant_id === SHOPIFY_VARIANT_ID) ?? product.variants[0])
         : product.variants[0];
+
+      const charge = charges[0];
+      if (charge) {
+        this._alreadyInOrder = charge.line_items.some(
+          li => li.external_variant_id.ecommerce === variant.external_variant_id
+        );
+      }
 
       const plan = product.plans.find(p => p.type !== 'onetime');
       if (!plan) console.error('[featured-product] No non-onetime plan found. Plans:', product.plans);
@@ -276,11 +291,11 @@ export default class FeaturedProduct extends LitElement {
         </div>
         <div class="actions">
           <button
-            class="btn ${this._added ? 'btn-success' : 'btn-primary'}"
-            ?disabled=${this._adding || this._added}
+            class="btn ${this._added || this._alreadyInOrder ? 'btn-success' : 'btn-primary'}"
+            ?disabled=${this._adding || this._added || this._alreadyInOrder}
             @click=${this._addToOrder}
           >
-            ${this._added ? 'Added!' : this._adding ? 'Adding...' : 'Add to order'}
+            ${this._alreadyInOrder ? 'Already in order' : this._added ? 'Added!' : this._adding ? 'Adding...' : 'Add to order'}
           </button>
         </div>
       </div>
