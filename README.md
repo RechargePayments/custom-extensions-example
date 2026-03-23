@@ -1,6 +1,6 @@
 # featured-product
 
-A Lit Web Component that renders a featured product from a Recharge storefront. Displays the product image, title, and description with a shimmer loading state. Includes an "Add to order" button that adds the product to the customer's next queued charge.
+A Lit Web Component that renders a featured product from a Recharge storefront. Displays the product image, title, and description with a shimmer loading state. Includes an "Add to order" button that adds the product to the customer's next queued charge and dispatches an `Affinity:refresh` custom event on success.
 
 ## Requirements
 

@@ -212,6 +212,7 @@ export default class FeaturedProduct extends LitElement {
 
     this._adding = false;
     this._added = true;
+    this.dispatchEvent(new CustomEvent('Affinity:refresh', { bubbles: true, composed: true }));
   }
 
   private async _fetchProduct() {
