@@ -28,7 +28,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@rechargeapps/storefront-client": "^1.80.0",
+    "@rechargeapps/storefront-client": "^2.10.0",
     "lit": "^3.0.0"
   },
   "devDependencies": {
